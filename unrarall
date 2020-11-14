@@ -40,6 +40,7 @@ declare -ax UNRARALL_DETECTED_CLEAN_UP_HOOKS
 declare -ax UNRARALL_CLEAN_UP_HOOKS_TO_RUN=(none)
 declare -x UNRARALL_OUTPUT_DIR=""
 declare -ix DEPTH=4
+declare -ix AGE=0
 declare -ix SKIP_IF_EXISTS=0
 declare -ix MV_BACKUP=0 # 0 -> we can use mv -b, 1 -> resort to shenanigans to not clobber when moving
 `mv --help | grep  "\-\-backup" 2>&1 >/dev/null`
@@ -49,7 +50,7 @@ function usage()
 {
   echo "Usage: ${UNRARALL_EXECUTABLE_NAME} [ --clean=<hook>[,<hook>] ] [ --force ] [ --full-path ]
                 [ --verbose | --quiet ] [--7zip | --backend=<backend> ] [--dry] [--disable-cksfv] [ --password-file <file> ]
-                [ --output DIRECTORY ] [ --find-binary <binary_path> ] [ --depth <amt> ] [--skip-if-exists] <DIRECTORY>
+                [ --output DIRECTORY ] [ --find-binary <binary_path> ] [ --depth <amt> ] [ --min-age <days> ] [--skip-if-exists] <DIRECTORY>
        ${UNRARALL_EXECUTABLE_NAME} --help
        ${UNRARALL_EXECUTABLE_NAME} --version
 
@@ -94,6 +95,8 @@ OPTIONS
                      will be extracted in the directory containing the rar file.
 --depth              Maximum depth that nested rar files will be extracted. By
                      default, is a depth of 4.
+--min-age            Minimum age of the rar files that will be extracted. By
+                     default it's 0.                     
 --skip-if-exists     Skip extraction of archive if all files already exists.
                      Note: files are only checked by name, not by contents!
 --password-file      Specify path to password file.
@@ -603,6 +606,19 @@ while [ -n "$1" ]; do
           ;;
         esac
       ;;
+      --min-age)
+        shift
+        AGE="$1"
+        case $AGE in
+          ''|*[!0-9]*)
+            message error "\"${AGE}\" is not a number"
+            exit 1
+           ;;
+          *)
+            message info "Using \"${AGE}\" as as the minimum age"
+          ;;
+        esac
+      ;;
       --skip-if-exists)
         SKIP_IF_EXISTS=1
       ;;
@@ -790,7 +806,7 @@ if [ "$CKSFV" -eq 1 ]; then
 fi
 
 # assuming only the .rar files are of interest
-for file in $(find_wrapper "$DIR" -depth -iregex '.*\.(rar|001)$'); do
+for file in $(find_wrapper "$DIR" -mtime +$AGE -depth -iregex '.*\.(rar|001)$'); do
 
   filename=`basename "${file}"`
   # Strip extension off filename
