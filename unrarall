@@ -806,7 +806,7 @@ if [ "$CKSFV" -eq 1 ]; then
 fi
 
 # assuming only the .rar files are of interest
-for file in $(find_wrapper "$DIR" -mtime +$AGE -depth -iregex '.*\.(rar|001)$'); do
+for file in $(find_wrapper "$DIR" -depth -mtime +$AGE -iregex '.*\.(rar|001)$'); do
 
   filename=`basename "${file}"`
   # Strip extension off filename
