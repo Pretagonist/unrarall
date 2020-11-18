@@ -871,7 +871,7 @@ for file in $(find_wrapper "$DIR" -depth -mtime +$AGE -iregex '.*\.(rar|001)$');
   # some special handling here to support macos: http://unix.stackexchange.com/a/84980/210181
   tmp_dir=`mktemp -d -p . 2>/dev/null || TMPDIR=$(pwd) mktemp -d -t 'unrarall'`
   if [ $? -ne 0 ] || [ -z ${tmp_dir} ] || [ ! -d "${tmp_dir}" ]; then
-    message error "Failed to create a temporary directory to handle extraction"
+    message error "Failed to create a temporary directory to handle extraction \"${tmp_dir}\""
     exit 1
   fi
   cd "${tmp_dir}"
